@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/zhangkaiyulw/watsons/issues"
   },
-  "homepage": "https://github.com/zhangkaiyulw/watsons#readme"
+  "homepage": "https://github.com/zhangkaiyulw/watsons#readme",
+  "dependencies": {
+    "lodash": "^4.17.4"
+  }
 }
