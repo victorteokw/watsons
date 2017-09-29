@@ -7,6 +7,7 @@ const join = require('lodash/join');
 const keys = require('lodash/keys');
 const difference = require('lodash/difference');
 const first = require('lodash/first');
+const includes = require('lodash/includes');
 
 const validators = {};
 
@@ -136,7 +137,7 @@ watsons.addValidator("instanceOf", function(value, keyPath, root, kls) {
 
 // TODO: validator dependency, for example, watsons.date.before(tomorrow), before requires date to be prepended.
 each(['array', 'bool', 'func', 'number', 'object', 'string', 'symbol', 'date', 'regexp', 'null'], function(expectedType){
-  watsons.addValidator(expectedType, function(value, keyPath, props) {
+  watsons.addValidator(expectedType, function(value, keyPath, root) {
     // Keep API simple and adjective by keeping in sync with prop-types, thus using 'func'.
     if (expectedType === 'func') expectedType = 'function';
     if (expectedType === 'bool') expectedType = 'boolean';
@@ -154,6 +155,12 @@ watsons.addValidator("required", function(value, keyPath, root) {
 });
 
 watsons.addValidator("any", function(value, keyPath, root) {});
+
+watsons.addValidator("oneOf", function(value, keyPath, root, list) {
+  if (!includes(list, value)) {
+    throw `Value at key path '${formatKeyPath(keyPath)}' should be one of [${join(list, ",")}], but it is '${value}'.`;
+  }
+}, true);
 
 // TODO: one of validator
 // TODO: one of type validator
