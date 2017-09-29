@@ -8,6 +8,7 @@ const keys = require('lodash/keys');
 const difference = require('lodash/difference');
 const first = require('lodash/first');
 const includes = require('lodash/includes');
+const map = require('lodash/map');
 
 const validators = {};
 
@@ -157,13 +158,30 @@ watsons.addValidator("required", function(value, keyPath, root) {
 watsons.addValidator("any", function(value, keyPath, root) {});
 
 watsons.addValidator("oneOf", function(value, keyPath, root, list) {
+  if (value === undefined) return;
   if (!includes(list, value)) {
     throw `Value at key path '${formatKeyPath(keyPath)}' should be one of [${join(list, ",")}], but it is '${value}'.`;
   }
 }, true);
 
-// TODO: one of validator
-// TODO: one of type validator
+watsons.addValidator("oneOfType", function(value, keyPath, root, validators) {
+  if (value === undefined) return;
+  let passFlag = false;
+  each(validators, function(v) {
+    if (!passFlag) {
+      try {
+        watsons.validate(value, undefined, v, keyPath, root);
+        passFlag = true;
+      } catch(e) {
+      }
+    }
+  });
+  if (!passFlag) {
+    let types = join(map(validators, "validators.0.name"), ", ");
+    throw `Value at key path '${formatKeyPath(keyPath)}' should be one of type [${types}].`;
+  }
+}, true);
+
 // TODO: custom function validator
 
 module.exports = watsons;
