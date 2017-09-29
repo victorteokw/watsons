@@ -182,6 +182,8 @@ watsons.addValidator("oneOfType", function(value, keyPath, root, validators) {
   }
 }, true);
 
-// TODO: custom function validator
+watsons.addValidator("validateWith", function(value, keyPath, root, func) {
+  func(value, keyPath, root);
+}, true);
 
 module.exports = watsons;
