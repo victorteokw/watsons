@@ -60,6 +60,9 @@ function formatKeyPath(keyPath) {
 
 // See https://github.com/facebook/prop-types/blob/155f4cc27ae7e566bb2825edb9f4467ed1d0d2b2/factoryWithTypeCheckers.js#L459
 function isSymbol(t, v) {
+  if (v === null) {
+    return false;
+  }
   // Native Symbol.
   if (t === 'symbol') {
     return true;
@@ -77,6 +80,9 @@ function isSymbol(t, v) {
 
 // TODO: handle string, number objects
 function getPrimitiveType(v) {
+  if (v === null) {
+    return 'null';
+  }
   let type = typeof v;
   if ((type === 'object') && Array.isArray(v)) {
     return 'array';
@@ -98,6 +104,7 @@ function getPrimitiveType(v) {
 
 watsons.addValidator("shape", function(object, keyPath, root, validators) {
   // TODO: Check additional keys not required
+  if (object === undefined) return;
   each(validators, function(validator, k){
     let value = object[k];
     each(validator.validators, function(v) {
@@ -108,10 +115,12 @@ watsons.addValidator("shape", function(object, keyPath, root, validators) {
 
 each(['array', 'object'], function(collection) {
   watsons.addValidator(`${collection}Of`, function(value, keyPath, root, validator) {
+    if (value === undefined) return;
     watsons.validate(value, undefined, watsons.validators[collection], keyPath, root);
     each(value, function(v, i) {
+      debugger;
       each(validator.validators, function(_validator) {
-        watsons.validate(v, _validator.params, watsons.validators[v.name], concat(keyPath, i), root);
+        watsons.validate(v, _validator.params, watsons.validators[_validator.name], concat(keyPath, i), root);
       });
     });
   }, true);
@@ -119,25 +128,26 @@ each(['array', 'object'], function(collection) {
 
 watsons.addValidator("instanceOf", function(value, keyPath, root, kls) {
   if (!value instanceof kls) {
-    throw `Value at key path ${formatKeyPath(keyPath)} should be instance of ${kls.name}.`;
+    throw `Value at key path '${formatKeyPath(keyPath)}' should be instance of ${kls.name}.`;
   }
 }, true);
 
 // TODO: validator dependency, for example, watsons.date.before(tomorrow), before requires date to be prepended.
-each(['array', 'bool', 'func', 'number', 'object', 'string', 'symbol', 'date', 'regexp'], function(expectedType){
+each(['array', 'bool', 'func', 'number', 'object', 'string', 'symbol', 'date', 'regexp', 'null'], function(expectedType){
   watsons.addValidator(expectedType, function(value, keyPath, props) {
     // Keep API simple and adjective by keeping in sync with prop-types, thus using 'func'.
     if (expectedType === 'func') expectedType = 'function';
     if (expectedType === 'bool') expectedType = 'boolean';
+    if (value === undefined) return;
     if (getPrimitiveType(value) !== expectedType) {
-      throw `Value at key path ${formatKeyPath(keyPath)} should be '${expectedType}'.`;
+      throw `Value at key path '${formatKeyPath(keyPath)}' should be '${expectedType}'.`;
     }
   });
 });
 
 watsons.addValidator("required", function(value, keyPath, root) {
-  if (isNil(value)) {
-    throw `Required value at key path ${formatKeyPath(keyPath)}.`;
+  if (value === undefined) {
+    throw `Required value at key path '${formatKeyPath(keyPath)}'.`;
   }
 });
 
