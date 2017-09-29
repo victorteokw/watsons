@@ -47,11 +47,12 @@ const watsons = {
   hasValidator: function(name) {
     return validators.hasOwnProperty(name);
   },
-  // TODO: chained validator should be handled here, not inside compound validators
-  validate: function(object, schema, validator = validators.shape, keyPath = [], root = object) {
-    validator(object, keyPath, root, schema);
-  },
-  validators: validators
+
+  validate: function(object, schema, validator = watsons.shape(schema), keyPath = [], root = object) {
+    each(validator.validators, function(v) {
+      validators[v.name](object, keyPath, root, v.params);
+    });
+  }
 };
 
 function formatKeyPath(keyPath) {
@@ -107,21 +108,16 @@ watsons.addValidator("shape", function(object, keyPath, root, validators) {
   if (object === undefined) return;
   each(validators, function(validator, k){
     let value = object[k];
-    each(validator.validators, function(v) {
-      watsons.validate(value, v.params, watsons.validators[v.name], concat(keyPath, k), root);
-    });
+    watsons.validate(value, undefined, validator, concat(keyPath, k), root);
   });
 }, true);
 
 each(['array', 'object'], function(collection) {
   watsons.addValidator(`${collection}Of`, function(value, keyPath, root, validator) {
     if (value === undefined) return;
-    watsons.validate(value, undefined, watsons.validators[collection], keyPath, root);
+    watsons.validate(value, undefined, watsons[collection], keyPath, root);
     each(value, function(v, i) {
-      debugger;
-      each(validator.validators, function(_validator) {
-        watsons.validate(v, _validator.params, watsons.validators[_validator.name], concat(keyPath, i), root);
-      });
+      watsons.validate(v, undefined, validator, concat(keyPath, i), root);
     });
   }, true);
 });
