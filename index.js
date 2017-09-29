@@ -4,6 +4,9 @@ const concat = require('lodash/concat');
 const isNil = require('lodash/isNil');
 const each = require('lodash/each');
 const join = require('lodash/join');
+const keys = require('lodash/keys');
+const difference = require('lodash/difference');
+const first = require('lodash/first');
 
 const validators = {};
 
@@ -104,8 +107,11 @@ function getPrimitiveType(v) {
 }
 
 watsons.addValidator("shape", function(object, keyPath, root, validators) {
-  // TODO: Check additional keys not required
   if (object === undefined) return;
+  let unallowedKey = first(difference(keys(object), keys(validators)));
+  if (unallowedKey) {
+    throw `Unallowed key '${unallowedKey}' at key path '${formatKeyPath(keyPath)}'.`;
+  }
   each(validators, function(validator, k){
     let value = object[k];
     watsons.validate(value, undefined, validator, concat(keyPath, k), root);
