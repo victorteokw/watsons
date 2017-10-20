@@ -1,6 +1,6 @@
 {
-  "name": "watsons",
-  "version": "0.0.2",
+  "name": "watsons.js",
+  "version": "0.0.3",
   "description": "JavaScript parameter validation inspired by prop-types.",
   "main": "index.js",
   "scripts": {
@@ -23,6 +23,9 @@
     "url": "https://github.com/zhangkaiyulw/watsons/issues"
   },
   "homepage": "https://github.com/zhangkaiyulw/watsons#readme",
+  "directories": {
+    "lib": "lib"
+  },
   "dependencies": {
     "lodash": "^4.17.4"
   },

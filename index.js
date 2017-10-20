@@ -10,6 +10,8 @@ const first = require('lodash/first');
 const includes = require('lodash/includes');
 const map = require('lodash/map');
 
+const WatsonsError = require('./lib/WatsonsError');
+
 const validators = {};
 
 class ChainedValidator extends Object {
@@ -22,9 +24,9 @@ class ChainedValidator extends Object {
 const watsons = {
   addValidator: function(name, validator, acceptParams) {
     if (watsons[name] && !this.hasValidator(name)) {
-      throw `Invalid validator name '${name}'.`;
+      throw new WatsonsError(`Invalid validator name '${name}'.`);
     } else if (this.hasValidator(name)) {
-      throw `Validator '${name}' redefined.`;
+      throw new WatsonsError(`Validator '${name}' redefined.`);
     }
     if (!acceptParams) {
       watsons[name] = new ChainedValidator([{name: name}]);
@@ -43,7 +45,8 @@ const watsons = {
       Object.defineProperty(ChainedValidator.prototype, name, {
         get: function() {
           return function(params) {
-            return new ChainedValidator(concat(this.validators, {name: name, params: params}));
+            return new ChainedValidator(
+              concat(this.validators, {name: name, params: params}));
           };
         }
       });
@@ -112,7 +115,8 @@ watsons.addValidator("shape", function(object, keyPath, root, validators) {
   if (object === undefined) return;
   let unallowedKey = first(difference(keys(object), keys(validators)));
   if (unallowedKey) {
-    throw `Unallowed key '${unallowedKey}' at key path '${formatKeyPath(keyPath)}'.`;
+    throw new WatsonsError(`Unallowed key '${unallowedKey}' at key path \
+'${formatKeyPath(keyPath)}'.`);
   }
   each(validators, function(validator, k){
     let value = object[k];
@@ -132,11 +136,13 @@ each(['array', 'object'], function(collection) {
 
 watsons.addValidator("instanceOf", function(value, keyPath, root, kls) {
   if (!value instanceof kls) {
-    throw `Value at key path '${formatKeyPath(keyPath)}' should be instance of ${kls.name}.`;
+    throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
+should be instance of ${kls.name}.`);
   }
 }, true);
 
-// TODO: validator dependency, for example, watsons.date.before(tomorrow), before requires date to be prepended.
+// TODO: validator dependency,
+//for example, watsons.date.before(tomorrow), before requires date to be prepended.
 each(['array', 'bool', 'func', 'number', 'object', 'string', 'symbol', 'date', 'regexp', 'null'], function(expectedType){
   watsons.addValidator(expectedType, function(value, keyPath, root) {
     // Keep API simple and adjective by keeping in sync with prop-types, thus using 'func'.
@@ -144,14 +150,16 @@ each(['array', 'bool', 'func', 'number', 'object', 'string', 'symbol', 'date', '
     if (expectedType === 'bool') expectedType = 'boolean';
     if (value === undefined) return;
     if (getPrimitiveType(value) !== expectedType) {
-      throw `Value at key path '${formatKeyPath(keyPath)}' should be '${expectedType}'.`;
+      throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
+should be '${expectedType}'.`);
     }
   });
 });
 
 watsons.addValidator("required", function(value, keyPath, root) {
   if (value === undefined) {
-    throw `Required value at key path '${formatKeyPath(keyPath)}'.`;
+    throw new WatsonsError(`Required value at key path \
+'${formatKeyPath(keyPath)}'.`);
   }
 });
 
@@ -160,7 +168,8 @@ watsons.addValidator("any", function(value, keyPath, root) {});
 watsons.addValidator("oneOf", function(value, keyPath, root, list) {
   if (value === undefined) return;
   if (!includes(list, value)) {
-    throw `Value at key path '${formatKeyPath(keyPath)}' should be one of [${join(list, ",")}], but it is '${value}'.`;
+    throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
+should be one of [${join(list, ",")}], but it is '${value}'.`);
   }
 }, true);
 
@@ -178,7 +187,8 @@ watsons.addValidator("oneOfType", function(value, keyPath, root, validators) {
   });
   if (!passFlag) {
     let types = join(map(validators, "validators.0.name"), ", ");
-    throw `Value at key path '${formatKeyPath(keyPath)}' should be one of type [${types}].`;
+    throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
+should be one of type [${types}].`);
   }
 }, true);
 
