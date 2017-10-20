@@ -51,6 +51,7 @@ Extending watsons
 
 ``` javaScript
 watsons.addValidator("match", function(s, keyPath, root, regexp) {
+  if (s === undefined) return;
   if (!regexp.test(s)) {
     throw new WatsonsError(`String value at keyPath \
 '${formatKeyPath(keyPath)}' does not match ${regexp.toString()}.`);
@@ -67,10 +68,63 @@ const checker = {
 watsons.validate(obj, checker); // will not throw
 ```
 
-Configuration
+## Configuration
 
 By default, watsons checks validator dependencies, it's useful during development process. However, in production environment, it's unnecessary and not efficiency.
 
 ``` javaScript
 watsons.config({checkDeps: false})
 ```
+
+## Documentation
+
+Watsons is designed to be extensible.
+
+#### Builtin validators
+
+- shape
+the default one for shaped object, works in the way similar to prop-types.
+- objectOf
+object which values should passing the provided validator. similar to prop-types.
+- arrayOf
+similar to objectOf but the object being validated should be array.
+- instanceOf
+object which is instance of provided class. similar to prop-types.
+- array
+array type.
+- bool
+boolean type.
+- func
+function type.
+- number
+number type.
+- object
+object type.
+- string
+string type.
+- symbol
+symbol type.
+- date
+date type.
+- regexp
+regular expression type.
+- null
+null type.
+- required
+value is required.
+- any
+any value, null validator.
+- oneOf
+enum validator.
+- oneOfType
+combined validator.
+
+#### Extending with new validators
+``` javaScript
+watsons.addvalidator(name, validatorFunc, acceptParams, dependencies)
+```
+Parameters:
+**name**: validator name string,
+**validatorFunc**: (value, keyPath, root, params)
+**acceptParams**: whether accepts params or not
+**dependencies**: required chained validators before this validator

@@ -10,6 +10,7 @@ describe("Watsons", function() {
     describe("Allowing dependencies check", function() {
       it("throw if not fulfilled.", function() {
         watsons.addValidator("match", function(s, keyPath, root, regexp) {
+          if (s === undefined) return;
           if (!regexp.test(s)) {
             throw new WatsonsError(`String value at keyPath \
 '${formatKeyPath(keyPath)}' does not match ${regexp.toString()}.`);
@@ -28,6 +29,7 @@ describe("Watsons", function() {
 
       it("not throw if fulfilled.", function() {
         watsons.addValidator("gte", function(n, keyPath, root, c) {
+          if (n === undefined) return;
           if (!(n >= c)) {
             throw new WatsonsError(`Value (${n}) at keyPath ${formatKeyPath(keyPath)} should be greater or equal ${c}.`);
           }
