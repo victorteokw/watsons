@@ -9,24 +9,55 @@ const difference = require('lodash/difference');
 const first = require('lodash/first');
 const includes = require('lodash/includes');
 const map = require('lodash/map');
+const assign = require('lodash/assign');
+const last = require('lodash/last');
+const dropRight = require('lodash/dropRight');
 
 const WatsonsError = require('./lib/WatsonsError');
+const formatKeyPath = require('./lib/formatKeyPath');
 
 const validators = {};
+
+const dependencies = {};
+
+let config = {
+  checkDeps: true
+};
 
 class ChainedValidator extends Object {
   constructor(validators) {
     super();
     this.validators = validators;
+    if (config.checkDeps) {
+      this.checkDeps();
+    }
+  }
+
+  checkDeps() {
+    let validatorName = last(this.validators).name;
+    let requiredDeps = dependencies[validatorName];
+    if (requiredDeps) {
+      let chained = map(dropRight(this.validators), 'name');
+      let unfulfilledDeps = difference(requiredDeps, chained);
+      if (unfulfilledDeps.length !== 0) {
+        throw new WatsonsError(`Unfulfilled validator dependencies ${join(unfulfilledDeps, ', ')} for validator ${validatorName}.`);
+      }
+    }
   }
 }
 
 const watsons = {
-  addValidator: function(name, validator, acceptParams) {
+  config: function(newConfig) {
+    config = assign({}, config, newConfig);
+  },
+  addValidator: function(name, validator, acceptParams, deps) {
     if (watsons[name] && !this.hasValidator(name)) {
       throw new WatsonsError(`Invalid validator name '${name}'.`);
     } else if (this.hasValidator(name)) {
       throw new WatsonsError(`Validator '${name}' redefined.`);
+    }
+    if (deps) {
+      dependencies[name] = deps;
     }
     if (!acceptParams) {
       watsons[name] = new ChainedValidator([{name: name}]);
@@ -62,10 +93,6 @@ const watsons = {
     });
   }
 };
-
-function formatKeyPath(keyPath) {
-  return join(keyPath, '.');
-}
 
 // See https://github.com/facebook/prop-types/blob/155f4cc27ae7e566bb2825edb9f4467ed1d0d2b2/factoryWithTypeCheckers.js#L459
 function isSymbol(t, v) {
