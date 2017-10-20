@@ -220,7 +220,10 @@ should be one of type [${types}].`);
 }, true);
 
 watsons.addValidator("validateWith", function(value, keyPath, root, func) {
-  func(value, keyPath, root);
+  if (!func(value, keyPath, root)) {
+    throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
+not passing custom validator function.`);
+  }
 }, true);
 
 module.exports = watsons;

@@ -25,7 +25,8 @@ const obj = {
     a: 100,
     b: [1, 2, true]
   },
-  nullableString: null
+  nullableString: null,
+  place: "New York"
 }
 const checker = {
   s: watsons.string,
@@ -42,7 +43,8 @@ const checker = {
   nullableString: watsons.oneOfType([
     watsons.string,
     watsons.null
-  ]).required
+  ]).required,
+  place: watsons.validateWith((v) => v === "New York")
 }
 watsons.validate(obj, checker) // will not throw
 ```
@@ -118,6 +120,8 @@ any value, null validator.
 enum validator.
 - oneOfType
 combined validator.
+- validateWith
+validate with custom function.
 
 #### Extending with new validators
 ``` javaScript
