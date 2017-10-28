@@ -87,7 +87,10 @@ const watsons = {
     return validators.hasOwnProperty(name);
   },
 
-  validate: function(object, schema, validator = watsons.shape(schema), keyPath = [], root = object) {
+  validate: function(object, schema, validator = watsons.shape, keyPath = [], root = object) {
+    if (typeof validator === 'function') {
+      validator = validator(schema);
+    }
     each(validator.validators, function(v) {
       validators[v.name](object, keyPath, root, v.params);
     });
@@ -224,6 +227,26 @@ watsons.addValidator("validateWith", function(value, keyPath, root, func) {
     throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
 not passing custom validator function.`);
   }
+}, true);
+
+watsons.addValidator("rule", function(value, keyPath, root, rule) {
+  console.log("HERE RUNS");
+  let [checker, message] = rule;
+  console.log("CHECKER");
+  console.log(checker);
+  console.log("message");
+  console.log(message);
+  try {
+    watsons.validate(value, undefined, checker);
+  } catch(e) {
+    throw new WatsonsError(message);
+  }
+}, true);
+
+watsons.addValidator("rules", function(value, keyPath, root, rules) {
+  each(rules, (rule) => {
+    watsons.validate(value, rule, watsons.rule);
+  });
 }, true);
 
 module.exports = watsons;
