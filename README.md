@@ -47,6 +47,7 @@ const checker = {
   place: watsons.validateWith((v) => v === "New York")
 }
 watsons.validate(obj, checker) // will not throw
+watsons.valid(obj, checker) // returns true
 ```
 
 Extending watsons
