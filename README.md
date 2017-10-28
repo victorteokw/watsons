@@ -160,6 +160,14 @@ combined validator.
 
 validate with custom function.
 
+- rule
+
+validate with custom message, useful for form data validation.
+
+- rules
+
+validate with rule entries, useful for form data validation.
+
 #### Extending with new validators
 ``` javaScript
 watsons.addvalidator(name, validatorFunc, acceptParams, dependencies)
