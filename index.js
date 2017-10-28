@@ -230,12 +230,7 @@ not passing custom validator function.`);
 }, true);
 
 watsons.addValidator("rule", function(value, keyPath, root, rule) {
-  console.log("HERE RUNS");
   let [checker, message] = rule;
-  console.log("CHECKER");
-  console.log(checker);
-  console.log("message");
-  console.log(message);
   try {
     watsons.validate(value, undefined, checker);
   } catch(e) {
