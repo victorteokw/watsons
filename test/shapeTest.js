@@ -23,7 +23,7 @@ describe("Watsons", function() {
             stringValue: 234
           };
           watsons.validate(object, checker);
-        }, /^WatsonsError: Value at key path 'stringValue' should be 'string'\.$/);
+        }, /^WatsonsValidationError: Value at key path 'stringValue' should be 'string'\.$/);
       });
     });
 
@@ -46,7 +46,7 @@ describe("Watsons", function() {
             n: []
           };
           watsons.validate(object, checker);
-        }, /^WatsonsError: Value at key path 'n' should be 'number'\.$/);
+        }, /^WatsonsValidationError: Value at key path 'n' should be 'number'\.$/);
       });
     });
 

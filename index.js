@@ -14,6 +14,7 @@ const last = require('lodash/last');
 const dropRight = require('lodash/dropRight');
 
 const WatsonsError = require('./lib/WatsonsError');
+const WatsonsValidationError = require('./lib/WatsonsValidationError');
 const formatKeyPath = require('./lib/formatKeyPath');
 
 const validators = {};
@@ -145,7 +146,7 @@ watsons.addValidator("shape", function(object, keyPath, root, validators) {
   if (object === undefined) return;
   let unallowedKey = first(difference(keys(object), keys(validators)));
   if (unallowedKey) {
-    throw new WatsonsError(`Unallowed key '${unallowedKey}' at key path \
+    throw new WatsonsValidationError(`Unallowed key '${unallowedKey}' at key path \
 '${formatKeyPath(keyPath)}'.`);
   }
   each(validators, function(validator, k){
@@ -166,7 +167,7 @@ each(['array', 'object'], function(collection) {
 
 watsons.addValidator("instanceOf", function(value, keyPath, root, kls) {
   if (!value instanceof kls) {
-    throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
+    throw new WatsonsValidationError(`Value at key path '${formatKeyPath(keyPath)}' \
 should be instance of ${kls.name}.`);
   }
 }, true);
@@ -180,7 +181,7 @@ each(['array', 'bool', 'func', 'number', 'object', 'string', 'symbol', 'date', '
     if (expectedType === 'bool') expectedType = 'boolean';
     if (value === undefined) return;
     if (getPrimitiveType(value) !== expectedType) {
-      throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
+      throw new WatsonsValidationError(`Value at key path '${formatKeyPath(keyPath)}' \
 should be '${expectedType}'.`);
     }
   });
@@ -188,7 +189,7 @@ should be '${expectedType}'.`);
 
 watsons.addValidator("required", function(value, keyPath, root) {
   if (value === undefined) {
-    throw new WatsonsError(`Required value at key path \
+    throw new WatsonsValidationError(`Required value at key path \
 '${formatKeyPath(keyPath)}'.`);
   }
 });
@@ -198,7 +199,7 @@ watsons.addValidator("any", function(value, keyPath, root) {});
 watsons.addValidator("oneOf", function(value, keyPath, root, list) {
   if (value === undefined) return;
   if (!includes(list, value)) {
-    throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
+    throw new WatsonsValidationError(`Value at key path '${formatKeyPath(keyPath)}' \
 should be one of [${join(list, ",")}], but it is '${value}'.`);
   }
 }, true);
@@ -217,14 +218,14 @@ watsons.addValidator("oneOfType", function(value, keyPath, root, validators) {
   });
   if (!passFlag) {
     let types = join(map(validators, "validators.0.name"), ", ");
-    throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
+    throw new WatsonsValidationError(`Value at key path '${formatKeyPath(keyPath)}' \
 should be one of type [${types}].`);
   }
 }, true);
 
 watsons.addValidator("validateWith", function(value, keyPath, root, func) {
   if (!func(value, keyPath, root)) {
-    throw new WatsonsError(`Value at key path '${formatKeyPath(keyPath)}' \
+    throw new WatsonsValidationError(`Value at key path '${formatKeyPath(keyPath)}' \
 not passing custom validator function.`);
   }
 }, true);
@@ -234,7 +235,7 @@ watsons.addValidator("rule", function(value, keyPath, root, rule) {
   try {
     watsons.validate(value, undefined, checker);
   } catch(e) {
-    throw new WatsonsError(message);
+    throw new WatsonsValidationError(message);
   }
 }, true);
 
