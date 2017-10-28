@@ -95,6 +95,19 @@ const watsons = {
     each(validator.validators, function(v) {
       validators[v.name](object, keyPath, root, v.params);
     });
+  },
+
+  valid: function(...args) {
+    try {
+      this.validate(...args);
+    } catch (e) {
+      if (e instanceof WatsonsValidationError) {
+        return false;
+      } else {
+        throw e;
+      }
+    }
+    return true;
   }
 };
 
