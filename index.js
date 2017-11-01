@@ -6,15 +6,17 @@ const each = require('lodash/each');
 const join = require('lodash/join');
 const keys = require('lodash/keys');
 const difference = require('lodash/difference');
-const first = require('lodash/first');
 const includes = require('lodash/includes');
 const map = require('lodash/map');
 const assign = require('lodash/assign');
 const last = require('lodash/last');
 const dropRight = require('lodash/dropRight');
+const set = require('lodash/set');
 
 const WatsonsError = require('./lib/WatsonsError');
 const WatsonsValidationError = require('./lib/WatsonsValidationError');
+const WatsonsCompoundValidationError =
+  require('./lib/WatsonsCompoundValidationError');
 const formatKeyPath = require('./lib/formatKeyPath');
 
 const validators = {};
@@ -41,7 +43,8 @@ class ChainedValidator extends Object {
       let chained = map(dropRight(this.validators), 'name');
       let unfulfilledDeps = difference(requiredDeps, chained);
       if (unfulfilledDeps.length !== 0) {
-        throw new WatsonsError(`Unfulfilled validator dependencies ${join(unfulfilledDeps, ', ')} for validator ${validatorName}.`);
+        throw new WatsonsError(`Unfulfilled validator dependencies \
+${join(unfulfilledDeps, ', ')} for validator ${validatorName}.`);
       }
     }
   }
@@ -157,15 +160,32 @@ function getPrimitiveType(v) {
 
 watsons.addValidator("shape", function(object, keyPath, root, validators) {
   if (object === undefined) return;
-  let unallowedKey = first(difference(keys(object), keys(validators)));
-  if (unallowedKey) {
-    throw new WatsonsValidationError(`Unallowed key '${unallowedKey}' at key path \
-'${formatKeyPath(keyPath)}'.`);
+  let errorDescriptor = {}, errorFlag;
+  let unallowedKeys = difference(keys(object), keys(validators));
+  if (unallowedKeys.length) {
+    set(errorDescriptor, '_this.unallowedKeys', unallowedKeys);
+    errorFlag = true;
   }
   each(validators, function(validator, k){
-    let value = object[k];
-    watsons.validate(value, undefined, validator, concat(keyPath, k), root);
+    let value = object[k], nextKeyPath = concat(keyPath, k);
+    try {
+      watsons.validate(value, undefined, validator, nextKeyPath, root);
+    } catch(e) {
+      if (e instanceof WatsonsValidationError) {
+        errorFlag = true;
+        if (e instanceof WatsonsCompoundValidationError) {
+          set(errorDescriptor, k, e.errorDescription);
+        } else {
+          set(errorDescriptor, k, e.message);
+        }
+      } else {
+        throw e;
+      }
+    }
   });
+  if (errorFlag) {
+    throw new WatsonsCompoundValidationError(errorDescriptor);
+  }
 }, true);
 
 each(['array', 'object'], function(collection) {
