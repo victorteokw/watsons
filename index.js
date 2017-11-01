@@ -160,6 +160,7 @@ function getPrimitiveType(v) {
 
 watsons.addValidator("shape", function(object, keyPath, root, validators) {
   if (object === undefined) return;
+  watsons.validate(object, undefined, watsons.object);
   let errorDescriptor = {}, errorFlag;
   let unallowedKeys = difference(keys(object), keys(validators));
   if (unallowedKeys.length) {
@@ -173,11 +174,7 @@ watsons.addValidator("shape", function(object, keyPath, root, validators) {
     } catch(e) {
       if (e instanceof WatsonsValidationError) {
         errorFlag = true;
-        if (e instanceof WatsonsCompoundValidationError) {
-          set(errorDescriptor, k, e.errorDescription);
-        } else {
-          set(errorDescriptor, k, e.message);
-        }
+        set(errorDescriptor, k, e.errorDescription);
       } else {
         throw e;
       }
@@ -192,9 +189,21 @@ each(['array', 'object'], function(collection) {
   watsons.addValidator(`${collection}Of`, function(value, keyPath, root, validator) {
     if (value === undefined) return;
     watsons.validate(value, undefined, watsons[collection], keyPath, root);
+    let errorDescriptor = {}, errorFlag;
     each(value, function(v, i) {
-      watsons.validate(v, undefined, validator, concat(keyPath, i), root);
+      let nextKeyPath = concat(keyPath, i);
+      try {
+        watsons.validate(v, undefined, validator, nextKeyPath, root);
+      } catch(e) {
+        if (e instanceof WatsonsValidationError) {
+          errorFlag = true;
+          set(errorDescriptor, i, e.errorDescription);
+        }
+      }
     });
+    if (errorFlag) {
+      throw new WatsonsCompoundValidationError(errorDescriptor);
+    }
   }, true);
 });
 
