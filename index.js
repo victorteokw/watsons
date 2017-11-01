@@ -189,7 +189,7 @@ each(['array', 'object'], function(collection) {
   watsons.addValidator(`${collection}Of`, function(value, keyPath, root, validator) {
     if (value === undefined) return;
     watsons.validate(value, undefined, watsons[collection], keyPath, root);
-    let errorDescriptor = {}, errorFlag;
+    let errorDescriptor = collection === 'object' ? {} : [], errorFlag;
     each(value, function(v, i) {
       let nextKeyPath = concat(keyPath, i);
       try {
