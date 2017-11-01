@@ -111,6 +111,18 @@ const watsons = {
       }
     }
     return true;
+  },
+
+  validation: function(...args) {
+    try {
+      this.validate(...args);
+    } catch (e) {
+      if (e instanceof WatsonsValidationError) {
+        return e.errorDescription;
+      } else {
+        return undefined;
+      }
+    }
   }
 };
 
