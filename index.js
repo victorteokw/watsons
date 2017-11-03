@@ -95,9 +95,23 @@ const watsons = {
     if (typeof validator === 'function') {
       validator = validator(schema);
     }
+    let errorMessages = [];
     each(validator.validators, function(v) {
-      validators[v.name](object, keyPath, root, v.params);
+      try {
+        validators[v.name](object, keyPath, root, v.params);
+      } catch(e) {
+        if (e instanceof WatsonsValidationError) {
+          errorMessages.push(e.errorDescription);
+        }
+      }
     });
+    if (errorMessages.length) {
+      if ((errorMessages.length === 1) && (typeof errorMessages[0] === 'string')) {
+        throw new WatsonsValidationError(errorMessages[0]);
+      } else {
+        throw new WatsonsCompoundValidationError(errorMessages.length === 1 ? errorMessages[0] : errorMessages);
+      }
+    }
   },
 
   valid: function(...args) {
