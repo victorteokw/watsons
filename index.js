@@ -157,7 +157,7 @@ function getPrimitiveType(v) {
 
 watsons.addValidator("shape", function(object, keyPath, root, validators) {
   if (object === undefined) return;
-  watsons.validate(value, undefined, watsons.object, keyPath, root);
+  watsons.validate(object, undefined, watsons.object, keyPath, root);
   let unallowedKey = first(difference(keys(object), keys(validators)));
   if (unallowedKey) {
     throw new WatsonsValidationError(`Unallowed key '${unallowedKey}' at key path \
